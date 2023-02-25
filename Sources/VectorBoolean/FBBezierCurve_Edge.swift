@@ -9,7 +9,8 @@
 //  Copyright (c) 2015 Leslie Titze. All rights reserved.
 //
 
-import UIKit
+
+import CoreGraphics
 
 // 18
 //static void FBFindEdge1TangentCurves(FBBezierCurve *edge, FBBezierIntersection *intersection, FBBezierCurve** leftCurve, FBBezierCurve **rightCurve)
@@ -121,10 +122,8 @@ extension FBBezierCurve {
         //crossing.edge = nil   // cannot nil a non-optional
         
         //[_crossings removeObject:crossing];
-        for (index, element) in crossings.enumerated()
-        {
-            if element === crossing
-            {
+        for (index, element) in crossings.enumerated() {
+            if element === crossing {
                 crossings.remove(at: index)
                 break
             }
@@ -170,7 +169,7 @@ extension FBBezierCurve {
                     // wrap to end
                     prev = contour.edges.last!
                 } else {
-                    prev = contour.edges[index-1]
+                    prev = contour.edges[index - 1]
                 }
             }
         }
@@ -199,7 +198,7 @@ extension FBBezierCurve {
     
     // 178
     //- (BOOL) hasCrossings
-    var hasCrossings : Bool {
+    var hasCrossings: Bool {
         return !crossings.isEmpty
     }
     
@@ -217,7 +216,7 @@ extension FBBezierCurve {
     // 196
     //- (void) crossingsCopyWithBlock:(void (^)(FBEdgeCrossing *crossing, BOOL *stop))block
     // TODO: Check that this behaves the same as the original
-    func crossingsCopyWithBlock(_ block: (_ crossing: FBEdgeCrossing) -> (setStop: Bool, stopValue:Bool)) {
+    func crossingsCopyWithBlock(_ block: (_ crossing: FBEdgeCrossing) -> (setStop: Bool, stopValue: Bool)) {
         let crossingsCopy = crossings
         for crossing in crossingsCopy {
             let (set, val) = block(crossing)
@@ -331,16 +330,12 @@ extension FBBezierCurve {
     //- (BOOL) crossesEdge:(FBBezierCurve *)edge2 atIntersection:(FBBezierIntersection *)intersection
     func crossesEdge(_ edge2: FBBezierCurve, atIntersection intersection: FBBezierIntersection) -> Bool {
         // If it's tangent, then it doesn't cross
-        if intersection.isTangent {
-            return false
-        }
+        guard !intersection.isTangent else { return false }
         
         // If the intersect happens in the middle of both curves, then it
         // definitely crosses, so we can just return true.
         // Most intersections will fall into this category.
-        if !intersection.isAtEndPointOfCurve {
-            return true
-        }
+        guard intersection.isAtEndPointOfCurve else { return true }
         
         // The intersection happens at the end of one of the edges, meaning we'll
         // have to look at the next edge in sequence to see if it crosses or not.
@@ -406,10 +401,7 @@ extension FBBezierCurve {
         return FBTangentsCross(edge1Tangents, edge2Tangents: edge2Tangents);
     }
     
-    
-    // ===============================
     // MARK: Private funcs
-    // ===============================
     
     
     // 374
