@@ -34,7 +34,7 @@ class FBBezierContour {
   fileprivate var _bounds : CGRect
   fileprivate var _boundingRect : CGRect
   fileprivate var _inside : FBContourInside
-  fileprivate var	_bezPathCache : UIBezierPath?
+  fileprivate var _bezPathCache : UIBezierPath?
 
 
   //@property FBContourInside inside;
