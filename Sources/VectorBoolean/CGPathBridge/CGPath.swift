@@ -9,11 +9,11 @@
 import QuartzCore
 
 public enum PathElement {
-  case move(to: CGPoint)
-  case line(to: CGPoint)
-  case quadCurve(to: CGPoint, via: CGPoint)
-  case cubicCurve(to: CGPoint, v1: CGPoint, v2: CGPoint)
-  case close
+    case move(to: CGPoint)
+    case line(to: CGPoint)
+    case quadCurve(to: CGPoint, via: CGPoint)
+    case cubicCurve(to: CGPoint, v1: CGPoint, v2: CGPoint)
+    case close
 }
 
 public extension CGPath {
