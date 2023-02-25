@@ -9,7 +9,16 @@
 //  Copyright (c) 2015 Leslie Titze. All rights reserved.
 //
 
+#if canImport(Cocoa)
+import Cocoa
+#endif
+
+#if canImport(UIKit)
 import UIKit
+#endif
+
+import SwiftUI
+import CoreGraphics
 
 enum FBContourInside {
     case filled
@@ -33,10 +42,13 @@ class FBBezierContour {
     fileprivate var _bounds : CGRect
     fileprivate var _boundingRect : CGRect
     fileprivate var _inside : FBContourInside
-    fileprivate var _bezPathCache : UIBezierPath?
-    
-    
-    //@property FBContourInside inside;
+    #if canImport(Cocoa)
+    fileprivate var _bezPathCache: NSBezierPath?
+    #endif
+    #if canImport(UIKit)
+    fileprivate var _bezPathCache: UIBezierPath?
+    #endif
+    fileprivate var _pathCache: Path?
     var inside : FBContourInside {
         get {
             return _inside
@@ -86,12 +98,13 @@ class FBBezierContour {
     func addCurve(_ curve: FBBezierCurve?) {
         // Add the curve by wrapping it in an edge
         if let curve = curve {
-            curve.contour = self;
+            curve.contour = self
             curve.index = _edges.count
             _edges.append(curve)
             _bounds = CGRect.null   // force the bounds to be recalculated
             _boundingRect = CGRect.null
             _bezPathCache = nil
+            _pathCache = nil
         }
     }
     
@@ -104,18 +117,18 @@ class FBBezierContour {
         // If the crossing isn't given go to the end of the edge on that side.
         var curve : FBBezierCurve?
         
-        if startCrossing == nil, let endCrossing = endCrossing {
+        if startCrossing == nil, let endCrossing {
             // From start to endCrossing
             curve = endCrossing.leftCurve
-        } else if endCrossing == nil, let startCrossing = startCrossing {
+        } else if endCrossing == nil, let startCrossing {
             // From startCrossing to end
             curve = startCrossing.rightCurve
-        } else if let startCrossing = startCrossing, let endCrossing = endCrossing {
+        } else if let startCrossing, let endCrossing {
             // From startCrossing to endCrossing
             curve = startCrossing.curve?.subcurveWithRange(FBRange(minimum: startCrossing.parameter, maximum: endCrossing.parameter))
         }
         
-        if let curve = curve {
+        if let curve {
             addCurve(curve)
         }
     }
@@ -127,7 +140,7 @@ class FBBezierContour {
         // Just reverse the points on the curve.
         // Need to do this to ensure the end point from one edge
         // matches the start on the next edge.
-        if let curve = curve {
+        if let curve {
             addCurve(curve.reversedCurve())
         }
     }
@@ -141,13 +154,13 @@ class FBBezierContour {
         // If the crossing isn't given go to the end of the edge on that side.
         var curve : FBBezierCurve?
         
-        if startCrossing == nil, let endCrossing = endCrossing {
+        if startCrossing == nil, let endCrossing {
             // From start to endCrossing
             curve = endCrossing.leftCurve
-        } else if endCrossing == nil, let startCrossing = startCrossing {
+        } else if endCrossing == nil, let startCrossing {
             // From startCrossing to end
             curve = startCrossing.rightCurve
-        } else if let startCrossing = startCrossing, let endCrossing = endCrossing {
+        } else if let startCrossing, let endCrossing {
             // From startCrossing to endCrossing
             curve = startCrossing.curve?.subcurveWithRange(FBRange(minimum: startCrossing.parameter, maximum: endCrossing.parameter))
         }
@@ -160,9 +173,9 @@ class FBBezierContour {
     
     // 132
     //- (NSRect) bounds
-    var bounds : CGRect {
+    var bounds: CGRect {
         // Cache the bounds to save time
-        if !_bounds.equalTo(CGRect.null) {
+        if _bounds != .null {
             return _bounds
         }
         
@@ -173,7 +186,7 @@ class FBBezierContour {
         
         var totalBounds = CGRect.zero
         for edge in _edges {
-            let edgeBounds : CGRect = edge.bounds
+            let edgeBounds: CGRect = edge.bounds
             if totalBounds.equalTo(CGRect.zero) {
                 totalBounds = edgeBounds
             } else {
@@ -191,9 +204,9 @@ class FBBezierContour {
     
     // 156
     //- (NSRect) boundingRect
-    var boundingRect : CGRect {
+    var boundingRect: CGRect {
         // Cache the boundingRect to save time
-        if !_boundingRect.equalTo(CGRect.null) {
+        if _boundingRect != .null {
             return _boundingRect
         }
         
@@ -204,7 +217,7 @@ class FBBezierContour {
         
         var totalBounds = CGRect.zero
         for edge in _edges {
-            let edgeBounds : CGRect = edge.boundingRect
+            let edgeBounds: CGRect = edge.boundingRect
             if totalBounds.equalTo(CGRect.zero) {
                 totalBounds = edgeBounds
             } else {
@@ -222,7 +235,7 @@ class FBBezierContour {
     
     // 180
     //- (NSPoint) firstPoint
-    var firstPoint : CGPoint {
+    var firstPoint: CGPoint {
         if _edges.count == 0 {
             return CGPoint.zero
         }
@@ -343,7 +356,7 @@ class FBBezierContour {
     
     // 269
     //- (NSPoint) testPointForContainment
-    var testPointForContainment : CGPoint {
+    var testPointForContainment: CGPoint {
         // Start with the startEdge, and if it's not shared (overlapping)
         // then use its first point
         if var testEdge = self.startEdge {
@@ -488,11 +501,79 @@ class FBBezierContour {
         //return containerCount & 1 != 0  // fast version of: containerCount % 2 != 0
     }
     
+    var path: Path {
+        if let _pathCache {
+            return _pathCache
+        } else {
+            var path = Path()
+            var firstPoint = true
+            
+            for edge in self.edges {
+                if firstPoint {
+                    path.move(to: edge.endPoint1)
+                    firstPoint = false
+                }
+                
+                if edge.isStraightLine {
+                    path.addLine(to: edge.endPoint2)
+                } else {
+                    path.addCurve(to: edge.endPoint2,
+                                  control1: edge.controlPoint1,
+                                  control2: edge.controlPoint2)
+                }
+            }
+            
+            if !path.isEmpty {
+                path.closeSubpath()
+            }
+            
+//            path.windingRule = NSBezierPath.WindingRule.evenOdd
+            _pathCache = path
+            return path
+        }
+    }
     
     // 376
-    //- (NSBezierPath*) bezierPath		// GPC: added
-    var bezierPath : UIBezierPath {
-        if _bezPathCache == nil {
+    //- (NSBezierPath*) bezierPath        // GPC: added
+    #if canImport(Cocoa)
+    var bezierPath: NSBezierPath {
+        if let _bezPathCache {
+            return _bezPathCache
+        } else {
+            let path = NSBezierPath()
+            var firstPoint = true
+            
+            for edge in self.edges {
+                if firstPoint {
+                    path.move(to: edge.endPoint1)
+                    firstPoint = false
+                }
+                
+                if edge.isStraightLine {
+                    path.line(to: edge.endPoint2)
+                } else {
+                    path.curve(to: edge.endPoint2,
+                               controlPoint1: edge.controlPoint1,
+                               controlPoint2: edge.controlPoint2)
+                }
+            }
+            
+            if !path.isEmpty {
+                path.close()
+            }
+            
+            path.windingRule = NSBezierPath.WindingRule.evenOdd
+            _bezPathCache = path
+            return path
+        }
+    }
+    #endif
+    
+    #if canImport(UIKit)
+    var bezierPath: UIBezierPath {
+        if let _bezPathCache {
+            return _bezPathCache
+        } else {
             let path = UIBezierPath()
             var firstPoint = true
             
@@ -505,21 +586,22 @@ class FBBezierContour {
                 if edge.isStraightLine {
                     path.addLine(to: edge.endPoint2)
                 } else {
-                    path.addCurve(to: edge.endPoint2, controlPoint1: edge.controlPoint1, controlPoint2: edge.controlPoint2)
+                    path.addCurve(to: edge.endPoint2,
+                                  controlPoint1: edge.controlPoint1,
+                                  controlPoint2: edge.controlPoint2)
                 }
             }
             
             if !path.isEmpty {
                 path.close()
             }
-            path.usesEvenOddFillRule = true
             
+            path.usesEvenOddFillRule = true
             _bezPathCache = path
+            return path
         }
-        
-        return _bezPathCache!
     }
-    
+    #endif
     
     // 403
     //- (void) close
@@ -773,33 +855,42 @@ class FBBezierContour {
     // 617
     //- (NSBezierPath *) debugPathForIntersectionType:(NSInteger)itersectionType
     /// Returns a path consisting of small circles placed at
-    /// the intersections that match <ti>
+    /// the intersections that match.
     ///
     /// This allows the internal state of a contour to be
     /// rapidly visualized so that bugs with boolean ops
     /// are easier to spot at a glance.
-    func debugPathForIntersectionType(_ itersectionType: Int) -> UIBezierPath {
-        
-        let path : UIBezierPath = UIBezierPath()
+    /// - Returns: A path consisting of small circles placed at the intersections that match.
+    private func debugPath<P>(_ path: P,
+                              forIntersectionType intersectionType: IntersectionType,
+                              appendCircle: (inout P, _ atPoint: CGPoint) -> Void,
+                              appendRect: (inout P, _ atPoint: CGPoint) -> Void,
+                              appendTriangle: (inout P, _ atPoint: CGPoint, _ direction: CGPoint) -> Void,
+                              appendFull: (inout P) -> Void,
+                              setLineDash: (inout P) -> Void) -> P {
+        var pathTemp = path
         
         for edge in _edges {
             
             edge.crossingsWithBlock() {
                 (crossing: FBEdgeCrossing) -> (setStop: Bool, stopValue:Bool) in
                 
-                if itersectionType == 1 {     // looking for entries
+                // looking for entries
+                if intersectionType == .entries {
                     if !crossing.isEntry {
                         return (false, false)
                     }
-                } else if itersectionType == 2 {   // looking for exits
+                    
+                    // looking for exits
+                } else if intersectionType == .exits {
                     if crossing.isEntry {
                         return (false, false)
                     }
                 }
                 if crossing.isEntry {
-                    path.append(UIBezierPath.circleAtPoint(crossing.location))
+                    appendCircle(&pathTemp, crossing.location)
                 } else {
-                    path.append(UIBezierPath.rectAtPoint(crossing.location))
+                    appendRect(&pathTemp, crossing.location)
                 }
                 
                 return (false, false)
@@ -809,22 +900,101 @@ class FBBezierContour {
         // Add the start point and direction for marking
         if let startEdge = self.startEdge {
             let startEdgeTangent = FBNormalizePoint(FBSubtractPoint(startEdge.controlPoint1, point2: startEdge.endPoint1));
-            path.append(UIBezierPath.triangleAtPoint(startEdge.endPoint1, direction: startEdgeTangent))
+            
+            appendTriangle(&pathTemp, startEdge.endPoint1, startEdgeTangent)
         }
         
         // Add the contour's entire path to make it easy
         // to see which one owns which crossings
         // (these can be colour-coded when drawing the paths)
-        path.append(self.bezierPath)
+        appendFull(&pathTemp)
         
         // If this countour is flagged as "inside",
         // the debug path is shown dashed, otherwise solid
         if self.inside == .hole {
-            let dashes : [CGFloat] = [CGFloat(2), CGFloat(3)]
-            path.setLineDash(dashes, count: 2, phase: 0)
+            setLineDash(&pathTemp)
         }
         
-        return path;
+        return pathTemp
     }
     
+    #if canImport(Cocoa)
+    /// Returns a path consisting of small circles placed at
+    /// the intersections that match.
+    ///
+    /// This allows the internal state of a contour to be
+    /// rapidly visualized so that bugs with boolean ops
+    /// are easier to spot at a glance.
+    /// - Returns: A path consisting of small circles placed at the intersections that match.
+    func debugPath(forIntersectionType intersectionType: IntersectionType) -> NSBezierPath {
+        debugPath(NSBezierPath(),
+                  forIntersectionType: intersectionType) { path, crossingLocation in
+            path.append(.circleAtPoint(crossingLocation))
+        } appendRect: { path, crossingLocation in
+            path.append(.rectAtPoint(crossingLocation))
+        } appendTriangle: { path, atPoint, direction in
+            path.append(.triangleAtPoint(atPoint, direction: direction))
+        } appendFull: { path in
+            path.append(self.bezierPath)
+        } setLineDash: { path in
+            let dashes: [CGFloat] = [2, 3]
+            path.setLineDash(dashes, count: 2, phase: 0)
+        }
+    }
+    #endif
+    
+    #if canImport(UIKit)
+    /// Returns a path consisting of small circles placed at
+    /// the intersections that match.
+    ///
+    /// This allows the internal state of a contour to be
+    /// rapidly visualized so that bugs with boolean ops
+    /// are easier to spot at a glance.
+    /// - Returns: A path consisting of small circles placed at the intersections that match.
+    func debugPath(forIntersectionType intersectionType: IntersectionType) -> UIBezierPath {
+        debugPath(UIBezierPath(),
+                  forIntersectionType: intersectionType) { path, crossingLocation in
+            path.append(.circleAtPoint(crossingLocation))
+        } appendRect: { path, crossingLocation in
+            path.append(.rectAtPoint(crossingLocation))
+        } appendTriangle: { path, atPoint, direction in
+            path.append(.triangleAtPoint(atPoint, direction: direction))
+        } appendFull: { path in
+            path.append(self.bezierPath)
+        } setLineDash: { path in
+            let dashes: [CGFloat] = [2, 3]
+            path.setLineDash(dashes, count: 2, phase: 0)
+        }
+    }
+    #endif
+    
+    /// Returns a path consisting of small circles placed at
+    /// the intersections that match.
+    ///
+    /// This allows the internal state of a contour to be
+    /// rapidly visualized so that bugs with boolean ops
+    /// are easier to spot at a glance.
+    /// - Returns: A path consisting of small circles placed at the intersections that match.
+//    func debugPath(forIntersectionType intersectionType: IntersectionType) -> Path {
+//        return debugPath(Path(),
+//                         forIntersectionType: intersectionType) { path, crossingLocation in
+//            path.addPath(.circleAtPoint(crossingLocation))
+//        } appendRect: { path, crossingLocation in
+//            path.addPath(.rectAtPoint(crossingLocation))
+//        } appendTriangle: { path, atPoint, direction in
+//            path.addPath(.triangleAtPoint(atPoint, direction: direction))
+//        } appendFull: { path in
+//            path.addPath(self.path)
+//        } setLineDash: { path in
+//            let dashes: [CGFloat] = [2, 3]
+//            path = path.strokedPath(.init(dash: dashes, dashPhase: 0))
+//        }
+//    }
+}
+
+extension FBBezierContour {
+    enum IntersectionType {
+        case entries
+        case exits
+    }
 }
