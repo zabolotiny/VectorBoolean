@@ -22,8 +22,7 @@ enum FBContourInside {
 /// Contours can be filled or represent a hole in another contour.
 class FBBezierContour {
     
-    enum FBContourDirection
-    {
+    enum FBContourDirection {
         case clockwise
         case antiClockwise
     }
