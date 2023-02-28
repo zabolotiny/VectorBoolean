@@ -48,7 +48,6 @@ class FBBezierContour {
     #if canImport(UIKit)
     fileprivate var _bezPathCache: UIBezierPath?
     #endif
-    fileprivate var _pathCache: Path?
     var inside : FBContourInside {
         get {
             return _inside
@@ -104,7 +103,6 @@ class FBBezierContour {
             _bounds = CGRect.null   // force the bounds to be recalculated
             _boundingRect = CGRect.null
             _bezPathCache = nil
-            _pathCache = nil
         }
     }
     
@@ -500,38 +498,7 @@ class FBBezierContour {
         return containerCount.isOdd
         //return containerCount & 1 != 0  // fast version of: containerCount % 2 != 0
     }
-    
-    var path: Path {
-        if let _pathCache {
-            return _pathCache
-        } else {
-            var path = Path()
-            var firstPoint = true
-            
-            for edge in self.edges {
-                if firstPoint {
-                    path.move(to: edge.endPoint1)
-                    firstPoint = false
-                }
-                
-                if edge.isStraightLine {
-                    path.addLine(to: edge.endPoint2)
-                } else {
-                    path.addCurve(to: edge.endPoint2,
-                                  control1: edge.controlPoint1,
-                                  control2: edge.controlPoint2)
-                }
-            }
-            
-            if !path.isEmpty {
-                path.closeSubpath()
-            }
-            
-//            path.windingRule = NSBezierPath.WindingRule.evenOdd
-            _pathCache = path
-            return path
-        }
-    }
+
     
     // 376
     //- (NSBezierPath*) bezierPath        // GPC: added
