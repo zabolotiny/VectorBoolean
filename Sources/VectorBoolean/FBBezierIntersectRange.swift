@@ -151,8 +151,7 @@ public class FBBezierIntersectRange {
     }
     
     //- (void) computeCurve1
-    fileprivate func computeCurve1()
-    {
+    fileprivate func computeCurve1() {
         if needToComputeCurve1 {
             
             let swr = _curve1.splitSubcurvesWithRange(_parameterRange1, left: true, middle: true, right: true)
@@ -166,8 +165,7 @@ public class FBBezierIntersectRange {
     
     // 114
     //- (void) computeCurve2
-    fileprivate func computeCurve2()
-    {
+    fileprivate func computeCurve2() {
         if needToComputeCurve2 {
             
             let swr = _curve2.splitSubcurvesWithRange(_parameterRange2, left: true, middle: true, right: true)
