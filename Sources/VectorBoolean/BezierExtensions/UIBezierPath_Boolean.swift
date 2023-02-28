@@ -17,8 +17,7 @@ public extension UIBezierPath {
     func fb_union(_ path: UIBezierPath) -> UIBezierPath {
         let thisGraph = FBBezierGraph(path: self)
         let otherGraph = FBBezierGraph(path: path)
-        let resultGraph = thisGraph.unionWithBezierGraph(otherGraph)!
-        let result = resultGraph.bezierPath
+        let resultGraph = thisGraph.unionWithBezierGraph(otherGraph).bezierPath
         result.fb_copyAttributesFrom(self)
         return result
     }
