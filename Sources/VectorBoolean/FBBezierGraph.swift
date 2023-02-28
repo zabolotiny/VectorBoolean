@@ -180,8 +180,7 @@ class FBBezierGraph {
     // 218
     //- (FBBezierGraph *) unionWithBezierGraph:(FBBezierGraph *)graph
     func unionWithBezierGraph(_ graph: FBBezierGraph) -> FBBezierGraph! {
-        // First insert FBEdgeCrossings into both graphs where the graphs
-        //  cross.
+        // First insert FBEdgeCrossings into both graphs where the graphs cross.
         insertCrossingsWithBezierGraph(graph)
         insertSelfCrossings()
         graph.insertSelfCrossings()
@@ -217,6 +216,7 @@ class FBBezierGraph {
         var ourNonintersectingContours = self.nonintersectingContours
         var theirNonintersectinContours = graph.nonintersectingContours
         var finalNonintersectingContours = ourNonintersectingContours
+        
         // Swift is so sweet about some things!
         // [finalNonintersectingContours addObjectsFromArray:theirNonintersectinContours];
         finalNonintersectingContours += theirNonintersectinContours
@@ -229,10 +229,8 @@ class FBBezierGraph {
             let clipContainsSubject = graph.containsContour(ourContour)
             if clipContainsSubject {
                 // [finalNonintersectingContours removeObject:ourContour];
-                for (index, element) in finalNonintersectingContours.enumerated()
-                {
-                    if element === ourContour
-                    {
+                for (index, element) in finalNonintersectingContours.enumerated() {
+                    if element === ourContour {
                         finalNonintersectingContours.remove(at: index)
                         break
                     }
@@ -245,10 +243,8 @@ class FBBezierGraph {
             let subjectContainsClip = self.containsContour(theirContour)
             if subjectContainsClip {
                 //[finalNonintersectingContours removeObject:theirContour];
-                for (index, element) in finalNonintersectingContours.enumerated()
-                {
-                    if element === theirContour
-                    {
+                for (index, element) in finalNonintersectingContours.enumerated() {
+                    if element === theirContour {
                         finalNonintersectingContours.remove(at: index)
                         break
                     }
@@ -279,10 +275,8 @@ class FBBezierGraph {
                 if ourContour.inside == theirContour.inside  {
                     // Redundant, so just remove one of them from the results
                     // [results removeObject:theirContour];
-                    for (index, element) in results.enumerated()
-                    {
-                        if element === theirContour
-                        {
+                    for (index, element) in results.enumerated() {
+                        if element === theirContour {
                             results.remove(at: index)
                             break
                         }
@@ -290,18 +284,14 @@ class FBBezierGraph {
                 } else {
                     // One is a hole, one is a fill, so they cancel each other out. Remove both from the results
                     //[results removeObject:theirContour];
-                    for (index, element) in results.enumerated()
-                    {
-                        if element === theirContour
-                        {
+                    for (index, element) in results.enumerated() {
+                        if element === theirContour {
                             results.remove(at: index)
                             break
                         }
                     }
-                    for (index, element) in results.enumerated()
-                    {
-                        if element === ourContour
-                        {
+                    for (index, element) in results.enumerated() {
+                        if element === ourContour {
                             results.remove(at: index)
                             break
                         }
@@ -596,12 +586,13 @@ class FBBezierGraph {
     
     // 544
     //- (NSBezierPath *) bezierPath
+    
+    // Convert this graph into a bezier path. This is straightforward, each contour
+    //  starting with a move to and each subsequent edge being translated by doing
+    //  a curve to.
+    // Be sure to mark the winding rule as even-odd, or interior contours (holes)
+    //  won't get filled/left alone properly.
     var bezierPath : UIBezierPath {
-        // Convert this graph into a bezier path. This is straightforward, each contour
-        //  starting with a move to and each subsequent edge being translated by doing
-        //  a curve to.
-        // Be sure to mark the winding rule as even-odd, or interior contours (holes)
-        //  won't get filled/left alone properly.
         let path = UIBezierPath()
         path.usesEvenOddFillRule = true
         
@@ -643,7 +634,7 @@ class FBBezierGraph {
                     for theirEdge in theirContour.edges {
                         
                         // Find all intersections between these two edges (curves)
-                        var intersectRange : FBBezierIntersectRange?
+                        var intersectRange: FBBezierIntersectRange?
                         ourEdge.intersectionsWithBezierCurve(theirEdge, overlapRange: &intersectRange) {
                             (intersection: FBBezierIntersection) -> (setStop: Bool, stopValue:Bool) in
                             
@@ -871,8 +862,7 @@ class FBBezierGraph {
     
     // 750
     //- (NSRect) bounds
-    var bounds : CGRect {
-        
+    var bounds: CGRect {
         // Compute the bounds of the graph by unioning together
         // the bounds of the individual contours
         if !_bounds.equalTo(CGRect.null) {
@@ -889,7 +879,6 @@ class FBBezierGraph {
         
         return _bounds
     }
-    
     
     // 765
     //- (FBContourInside) contourInsides:(FBBezierContour *)testContour
@@ -1438,6 +1427,7 @@ class FBBezierGraph {
                         break
                     }
                 }
+                
                 // If it doesn't exist in our counterpart, mark it for death
                 if !existsInOther {
                     containersToRemove.append(containerToTest)
@@ -1465,6 +1455,7 @@ class FBBezierGraph {
                         count += 1
                     }
                 }
+                
                 // If it's not an odd number of times, it doesn't contain
                 // the test contour, so mark it for death
                 //if (count % 2) != 1 {
@@ -1497,10 +1488,8 @@ class FBBezierGraph {
         // Now walk through and remove the crossings
         for crossing in crossingsToRemove {
             //[crossings removeObject:crossing];
-            for (index, element) in crossings.enumerated()
-            {
-                if element === crossing
-                {
+            for (index, element) in crossings.enumerated() {
+                if element === crossing {
                     crossings.remove(at: index)
                     break
                 }
