@@ -54,8 +54,7 @@ class FBEdgeOverlap {
     }
     
     //- (void) addMiddleCrossing
-    func addMiddleCrossing()
-    {
+    func addMiddleCrossing() {
         let intersection = _range.middleIntersection
         
         let ourCrossing = FBEdgeCrossing(intersection: intersection)
