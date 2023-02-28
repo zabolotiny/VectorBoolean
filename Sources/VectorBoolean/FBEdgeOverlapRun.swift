@@ -203,9 +203,7 @@ class FBEdgeOverlapRun {
     
 }
 
-// =============================
-// MARK: Utility functions
-// =============================
+// MARK: - Edge Overlap Helpers
 
 //static CGFloat FBComputeEdge1Tangents(FBEdgeOverlap *firstOverlap, FBEdgeOverlap *lastOverlap, CGFloat offset, NSPoint edge1Tangents[2])
 func FBComputeEdge1Tangents(_ firstOverlap: FBEdgeOverlap, lastOverlap: FBEdgeOverlap, offset: Double, edge1Tangents: inout FBTangentPair) -> Double {
