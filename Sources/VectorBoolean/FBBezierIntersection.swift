@@ -35,12 +35,12 @@ public class FBBezierIntersection {
     fileprivate var needToComputeCurve1 = true
     fileprivate var needToComputeCurve2 = true
     
-    public var location : CGPoint {
+    public var location: CGPoint {
         computeCurve1()
         return _location!
     }
     
-    var curve1 : FBBezierCurve {
+    var curve1: FBBezierCurve {
         return _curve1
     }
     
@@ -48,7 +48,7 @@ public class FBBezierIntersection {
         return _parameter1
     }
     
-    var curve2 : FBBezierCurve {
+    var curve2: FBBezierCurve {
         return _curve2
     }
     
@@ -91,7 +91,7 @@ public class FBBezierIntersection {
     }
     
     //- (FBBezierCurve *) curve1LeftBezier
-    var curve1LeftBezier : FBBezierCurve {
+    var curve1LeftBezier: FBBezierCurve {
         computeCurve1()
         return _curve1LeftBezier!
     }
@@ -154,8 +154,7 @@ public class FBBezierIntersection {
     
     
     //- (void) computeCurve1
-    fileprivate func computeCurve1()
-    {
+    fileprivate func computeCurve1() {
         if needToComputeCurve1 {
             let pap = _curve1.pointAtParameter(_parameter1)
             _location = pap.point
@@ -167,8 +166,7 @@ public class FBBezierIntersection {
     }
     
     //- (void) computeCurve2
-    fileprivate func computeCurve2()
-    {
+    fileprivate func computeCurve2() {
         if needToComputeCurve2 {
             let pap = _curve2.pointAtParameter(_parameter2)
             // not using the point from curve2
