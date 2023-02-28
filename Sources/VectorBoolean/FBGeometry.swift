@@ -291,10 +291,10 @@ func PolarAngle(_ point: CGPoint) -> Double {
         }
     } else {
         if point.y > 0.0 {
-            value =  Half_π
+            value = Half_π
         }
         else if point.y < 0.0 {
-            value =  -Half_π
+            value = -Half_π
         }
         else {
             value = 0.0
@@ -486,6 +486,11 @@ struct FBTangentPair {
     var right: CGPoint
 }
 
+struct FBAnglePair {
+    var a: Double
+    var b: Double
+}
+
 func FBAreTangentsAmbigious(_ edge1Tangents: FBTangentPair, edge2Tangents: FBTangentPair) -> Bool {
     
     let normalEdge1 = FBTangentPair(left: FBNormalizePoint(edge1Tangents.left), right: FBNormalizePoint(edge1Tangents.right))
@@ -495,12 +500,6 @@ func FBAreTangentsAmbigious(_ edge1Tangents: FBTangentPair, edge2Tangents: FBTan
     || FBArePointsCloseWithOptions(normalEdge1.left,  point2: normalEdge2.right, threshold: FBTangentClosenessThreshold)
     || FBArePointsCloseWithOptions(normalEdge1.right, point2: normalEdge2.left,  threshold: FBTangentClosenessThreshold)
     || FBArePointsCloseWithOptions(normalEdge1.right, point2: normalEdge2.right, threshold: FBTangentClosenessThreshold)
-}
-
-
-struct FBAnglePair {
-    var a: Double
-    var b: Double
 }
 
 func FBTangentsCross(_ edge1Tangents: FBTangentPair, edge2Tangents: FBTangentPair) -> Bool {
